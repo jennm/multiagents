@@ -51,6 +51,19 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
+    def getMinDistance(self, state, _locations):
+      locations = _locations.asList()
+      if len(locations) == 0:
+        return 0, 0
+      min_dist = manhattanDistance(state, locations[0])
+      max_dist = min_dist
+      for location in locations[1:]:
+        # min_dist += manhattanDistance(state, location)
+        dist = manhattanDistance(state, location)
+        min_dist = min(min_dist, dist)
+        max_dist = max(max_dist, dist)
+      return min_dist + 1, max_dist
+
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -73,8 +86,63 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
+        # print "successorGameState:", successorGameState
+        # print "newPos:", newPos
+        # print "newFood:", type(newFood)
+        # print "newGhostStates:", newGhostStates
+        # print "newScaredTimes:", newScaredTimes
+        # print "newFood count:", newFood.count()
+
+        # print "min distance:", self.getMinDistance(newPos, newFood)
+
+        # grid_manhatten = successorGameState.width + successorGameState.height
+
+        if len(newGhostStates) > 0:
+          x, y = ghostState.getPosition()
+          direction = ghostState.getDirection()
+          # print "direction:", direction
+          if direction == 'NORTH':
+            x += 1
+          elif direction == 'SOUTH':
+            x -= 1
+          elif direction == 'EAST':
+            y += 1
+          elif direction == 'WEST':
+            y -= 1
+          # if direction == successorGameState.getPacmanDirection()
+          ghost_factor = max(manhattanDistance(newPos, ghostState.getPosition()), manhattanDistance(newPos, (x,y)))
+          for ghostState in newGhostStates[1:]:
+            x, y = ghostState.getPosition()
+            direction = ghostState.getDirection()
+            print "direction:", direction
+            if direction == 'NORTH':
+              x += 1
+            elif direction == 'SOUTH':
+              x -= 1
+            elif direction == 'EAST':
+              y += 1
+            elif direction == 'WEST':
+              y -= 1
+          
+            ghost_factor = min(max(manhattanDistance(newPos, ghostState.getPosition()), manhattanDistance(newPos, (x,y))))
+        else:
+          ghost_factor = 0
+
+        scared = 0
+        for scaredTime in newScaredTimes:
+          scared += scaredTime
+
+        successorGameState.getPacmanState()
+        
+        # dist = self.getMinDistance(newPos, newFood)
+        # if type(dist) is list:
+        #   min_dist = dist[0]
+        #   max_dist = dist[1]
+        min_dist, max_dist = self.getMinDistance(newPos, newFood)
+        return 3 *successorGameState.getScore()  +  scared - 1.75 * min_dist - (max_dist - min_dist) / 2 + ghost_factor - newFood.count()#/ 1.25 - newFood.count()
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # old successor function
+        # return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
     """
