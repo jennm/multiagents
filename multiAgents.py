@@ -226,65 +226,78 @@ class MinimaxAgent(MultiAgentSearchAgent):
       Your minimax agent (question 2)
     """
 
-    def min_value(self, state, current_agent, action):
-      v = sys.maxint
+    def min_value(self, state, current_agent, depth):#, action):
+      val = sys.maxint
       # actions = previous_actions
       current_agent %= (self.totalAgents - 1)
+      # if depth == self.depth  or state.isWin() or state.isLose():
+      #   return self.evaluationFunction(state)
+      if current_agent + 1 == self.totalAgents:
+        print "incremented"
+        depth += 1
+      if depth == self.depth  or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)
       for move in state.getLegalActions(current_agent):
         # _actions = previous_actions + [action]
         successor = state.generateSuccessor(current_agent, move)
         # for successor in state.generateSuccessor(current_agent, action):
-        # current_agent = (current_agent + 1) % (self.totalAgents - 1)
-        val, a = self.value(successor, current_agent + 1, move)
-        if val < v:
-          v = val
-          action = move
-          print "min:", action
+        _current_agent = (current_agent + 1) % (self.totalAgents - 1)
+        val = max(val, self.value(successor, _current_agent, depth))
+        # val, a = self.value(successor, current_agent, move)
+        # if val < v:
+        #   v = val
+        #   action = move
+        #   print "min:", action
           # actions = _actions + [a]
           # v = min(v, self.value(successor, current_agent))
-      if current_agent + 1 == self.totalAgents:
-        print "incremented"
-        self.current_depth += 1
-      return v, action
+      # if current_agent + 1 == self.totalAgents:
+      #   print "incremented"
+      #   self.current_depth += 1
+      return val#, action
 
-    def max_value(self, state, current_agent, action):
-      v = -sys.maxint
+    def max_value(self, state, current_agent, depth):#, action):
+      val = -sys.maxint
       # self.current_agent = 0
       # actions = previous_actions
-      current_agent %= (self.totalAgents - 1)
+      current_agent %= self.totalAgents#(self.totalAgents - 1)
+      if depth == self.depth  or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)
       for move in state.getLegalActions(current_agent):
         # _actions = previous_actions + [action]
         successor = state.generateSuccessor(current_agent, move)
         # for successor in state.generateSuccessor(current_agent, action):
         # for agent in range()
         # for i in range(1, self.totalAgents):
-        # current_agent = (current_agent + 1) % (self.totalAgents - 1)
-        val, a = self.value(successor, current_agent + 1, move)
-        if val > v:
-          v = val
-          action = move
-          print "max:", action
+        _current_agent = (current_agent + 1) % (self.totalAgents - 1)
+        val = max(val, self.value(successor, _current_agent, depth))#, move))
+        # val, a = self.value(successor, current_agent, move)
+        # if val > v:
+        #   v = val
+          # action = move
+          # print "max:", action
           # actions = _actions + [a]
           # current_agent += 1
           # v = max(v, self.value(successor, current_agent))
-      return v, action
+      return val#, action
 
 
-    def value(self, state, current_agent, action):
+    def value(self, state, current_agent, depth):#, action):
       # print "current agent", current_agent
       # if (current_agent == self.totalAgents - 1):
       #   print "current agent incremented", current_agent
       #   self.current_depth += 1
-      if self.current_depth >= self.depth  or state.isWin() or state.isLose():
+      # if self.current_depth > self.depth:
+      #   print "PROBLEM"
       # if self.current_depth + 1 == self.depth and current_agent % self.totalAgents == self.totalAgents - 1:
-        print "ca", current_agent
-        print "ta", self.totalAgents
-        print "d", self.depth
-        return self.evaluationFunction(state), action
+        # print "ca", current_agent
+        # print "ta", self.totalAgents
+        # print "d", self.depth
+      if depth == self.depth  or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)#, action
       if current_agent == 0:
-        return self.max_value(state, current_agent, action) 
+        return self.max_value(state, current_agent, depth)#, action) 
       if current_agent > 0:
-        return self.min_value(state, current_agent, action)
+        return self.min_value(state, current_agent, depth)#, action)
 
     def getAction(self, gameState):
         """
@@ -312,8 +325,17 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # while self.current_depth <= self.depth:
         # self.current_depth = 0
         # self.depth = 1
-        score, action = self.max_value(currentState, 0, action)
+        
+        # score = self.max_value(currentState, 0)#, action)
           # self.current_depth += 1
+
+        score = -sys.maxint
+        for move in currentState.getLegalActions(0):
+          _score = max(score, self.min_value(currentState.generateSuccessor(0, move), 1, 0))
+          if _score > score:
+            score = _score
+            action = move
+
         
         print "returned:", action
         return action
