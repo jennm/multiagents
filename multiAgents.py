@@ -12,9 +12,11 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from pacman import GameState
 from util import manhattanDistance
-from game import Directions
+from game import Actions, Directions
 import random, util
+import sys
 
 from game import Agent
 
@@ -154,6 +156,50 @@ def scoreEvaluationFunction(currentGameState):
     """
     return currentGameState.getScore()
 
+class TreeNode(Agent):
+
+  def __init__(self, gameState, action, parent, agent=True):
+    self.gameState = gameState
+    self.previous_action = action
+    self.parent = parent
+    if agent:
+      self.score = 10000000000000000
+    else:
+      self.score = -10000000000000000
+    # self.score = 0#gameState.getScore()
+    self.agent = agent
+    self.actions = [action]
+    self.terminal = True
+    if self.parent != 0:
+      print "update terminal"
+      self.parent.terminal = False
+
+  def update_score(self, new_score, actions):
+    # if self.parent != 0:
+    #   print("before getScore called")
+    #   score = self.gameState.getScore()
+    # else:
+    #   score = self.score
+    
+    if self.agent:
+      if self.score > new_score:
+        self.score = new_score
+        self.actions.append(actions)
+      # elif self.score > score:
+      #   self.score = score
+    else:
+      if self.score < new_score:
+        self.score= new_score
+        self.actions.append(actions)
+      # elif self.score < score:
+      #   self.score = score
+  
+  # def add_successor(self, successor):
+  #   self.successors.append(successor)
+
+
+    
+
 class MultiAgentSearchAgent(Agent):
     """
       This class provides some common elements to all of your
@@ -174,10 +220,71 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+
 class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
+
+    def min_value(self, state, current_agent, action):
+      v = sys.maxint
+      # actions = previous_actions
+      current_agent %= (self.totalAgents - 1)
+      for move in state.getLegalActions(current_agent):
+        # _actions = previous_actions + [action]
+        successor = state.generateSuccessor(current_agent, move)
+        # for successor in state.generateSuccessor(current_agent, action):
+        # current_agent = (current_agent + 1) % (self.totalAgents - 1)
+        val, a = self.value(successor, current_agent + 1, move)
+        if val < v:
+          v = val
+          action = move
+          print "min:", action
+          # actions = _actions + [a]
+          # v = min(v, self.value(successor, current_agent))
+      if current_agent + 1 == self.totalAgents:
+        print "incremented"
+        self.current_depth += 1
+      return v, action
+
+    def max_value(self, state, current_agent, action):
+      v = -sys.maxint
+      # self.current_agent = 0
+      # actions = previous_actions
+      current_agent %= (self.totalAgents - 1)
+      for move in state.getLegalActions(current_agent):
+        # _actions = previous_actions + [action]
+        successor = state.generateSuccessor(current_agent, move)
+        # for successor in state.generateSuccessor(current_agent, action):
+        # for agent in range()
+        # for i in range(1, self.totalAgents):
+        # current_agent = (current_agent + 1) % (self.totalAgents - 1)
+        val, a = self.value(successor, current_agent + 1, move)
+        if val > v:
+          v = val
+          action = move
+          print "max:", action
+          # actions = _actions + [a]
+          # current_agent += 1
+          # v = max(v, self.value(successor, current_agent))
+      return v, action
+
+
+    def value(self, state, current_agent, action):
+      # print "current agent", current_agent
+      # if (current_agent == self.totalAgents - 1):
+      #   print "current agent incremented", current_agent
+      #   self.current_depth += 1
+      if self.current_depth >= self.depth  or state.isWin() or state.isLose():
+      # if self.current_depth + 1 == self.depth and current_agent % self.totalAgents == self.totalAgents - 1:
+        print "ca", current_agent
+        print "ta", self.totalAgents
+        print "d", self.depth
+        return self.evaluationFunction(state), action
+      if current_agent == 0:
+        return self.max_value(state, current_agent, action) 
+      if current_agent > 0:
+        return self.min_value(state, current_agent, action)
 
     def getAction(self, gameState):
         """
@@ -196,8 +303,82 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
+
+        self.current_depth = 0
+        currentState = gameState
+        self.totalAgents = gameState.getNumAgents()
+        action = []
+        self.current_depth = 0
+        # while self.current_depth <= self.depth:
+        # self.current_depth = 0
+        # self.depth = 1
+        score, action = self.max_value(currentState, 0, action)
+          # self.current_depth += 1
+        
+        print "returned:", action
+        return action
+        # self.value(gameState)
+
+        # self.totalAgents = self.getNumAgents() - 1
+
+
+        # stack = util.Stack()
+
+        # root = TreeNode(gameState, 0, 0, False)
+        # parent_root = root
+        # stack.push(parent_root)
+        # parent = gameState
+        # fringe = util.Queue()
+        # fringe.push(parent_root)
+        # # for d in range(self.depth):
+        # d = 1
+        # fringe_help = [0] * (self.depth + 1)
+        # print self.depth
+        # while d <= self.depth:
+        #   # actions = gameState.getLegalActions(0)
+        #   parent_root = fringe.pop()
+        #   actions = parent_root.gameState.getLegalActions(0)
+        #   if fringe_help[d - 1] > 0:
+        #     fringe_help[d - 1] -= 1
+        #   # nodes = list()
+        #   # currentGameState = gameState
+        #   for action in actions:
+        #     pstate = parent.generateSuccessor(0, action)
+        #     _parent_root = TreeNode(pstate, action, parent_root, False)
+        #     stack.push(_parent_root)
+        #     for i in range(1,parent.getNumAgents()):
+        #       print("stack")
+        #       currentGameState = gameState.generateSuccessor(i, action)
+        #       current = TreeNode(currentGameState, action, _parent_root, True)
+        #       stack.push(current)
+        #     fringe.push(current)
+        #     fringe_help[d] += 1
+        #   if fringe_help[d - 1] == 0:
+        #     d += 1
+
+        #     # parent_root = TreeNode(gameState, parent, )
+
+        #       # nodes.append(TreeNode(currentGameState, action))
+        # while not stack.isEmpty():
+        #   popped = stack.pop()
+        #   if popped.parent == 0:
+        #     break
+        #   print("popped")
+        #   if popped.terminal:
+        #     score = popped.score
+        #     # score = self.evaluationFunction(popped.gameState)
+        #   else:
+        #     # print popped.gameState.getScore()
+        #     score = popped.score
+        #   popped.parent.update_score(score, popped.actions)
+
+        # return root.actions
+
+
+          # pass
+
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -210,6 +391,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
+    # def value(self, state):
+    #   if 
+    # def max_value(self, state):
+    #   v = 0
+    #   for successor in state.successors:
+    #     v = max(v, )
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
