@@ -351,7 +351,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           _score = self.minValue(successor, current_agent + 1, current_depth, alpha, beta)#-sys.maxint, sys.maxint)
           if _score > score:
             score = _score
-            action = move\
+            action = move
               
           alpha = max(alpha, _score)
 
@@ -370,6 +370,37 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+    def maxValue(self, state, current_agent, depth):
+      if depth == self.depth or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)
+      
+
+      current_agent %= (self.totalAgents - 1)
+      val = -sys.maxint
+      for move in state.getLegalActions(current_agent):
+        successor = state.generateSuccessor(current_agent, move)
+        val = max(val, self.expValue(successor, current_agent + 1, depth))
+      return val
+
+    def expValue(self, state, current_agent, depth):
+      if depth == self.depth or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)
+      
+      sum = 0
+      count = 0
+
+      if current_agent + 1 == self.totalAgents:
+        for move in state.getLegalActions(current_agent):
+          successor = state.generateSuccessor(current_agent, move)
+          sum += self.maxValue(successor, current_agent, depth + 1)
+          count += 1
+      else:
+        for move in state.getLegalActions(current_agent):
+          successor = state.generateSuccessor(current_agent, move)
+          sum += self.expValue(successor, current_agent + 1, depth)
+          count += 1
+      return float(sum) / float(count)
+
 
     def getAction(self, gameState):
         """
@@ -378,8 +409,23 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        self.totalAgents = gameState.getNumAgents()
+        current_depth = 0
+        current_agent = 0
+
+        score = -sys.maxint
+        action = ""
+        for move in gameState.getLegalActions(current_agent):
+          successor = gameState.generateSuccessor(current_agent, move)
+          _score = self.expValue(successor, current_agent + 1, current_depth)
+          if _score > score:
+            score = _score
+            action = move
+
+        return action
+        # "*** YOUR CODE HERE ***"
+        # util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
     """
