@@ -229,6 +229,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     def maxValue(self, state, current_agent, depth):
       if depth == self.depth or state.isWin() or state.isLose():
         return self.evaluationFunction(state)
+      
 
       current_agent %= (self.totalAgents - 1)
       val = -sys.maxint
@@ -240,8 +241,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
     def minValue(self, state, current_agent, depth):
       if depth == self.depth or state.isWin() or state.isLose():
         return self.evaluationFunction(state)
-
+      
       val = sys.maxint
+
       if current_agent + 1 == self.totalAgents:
         for move in state.getLegalActions(current_agent):
           successor = state.generateSuccessor(current_agent, move)
@@ -252,219 +254,39 @@ class MinimaxAgent(MultiAgentSearchAgent):
           val = min(val, self.minValue(successor, current_agent + 1, depth))
       return val
 
+
     def getAction(self, gameState):
-      self.totalAgents = gameState.getNumAgents()
-      current_depth = 0
+        """
+          Returns the minimax action from the current gameState using self.depth
+          and self.evaluationFunction.
 
-      score = -sys.maxint
-      action = ""
-      for move in gameState.getLegalActions(0):
-        successor = gameState.generateSuccessor(0, move)
-        _score = self.minValue(successor, 1, 0)
-        if _score > score:
-          score = _score
-          action = move
+          Here are some method calls that might be useful when implementing minimax.
 
-      return action
+          gameState.getLegalActions(agentIndex):
+            Returns a list of legal actions for an agent
+            agentIndex=0 means Pacman, ghosts are >= 1
 
+          gameState.generateSuccessor(agentIndex, action):
+            Returns the successor game state after an agent takes an action
 
+          gameState.getNumAgents():
+            Returns the total number of agents in the game
+        """
 
+        self.totalAgents = gameState.getNumAgents()
+        current_depth = 0
+        current_agent = 0
 
-    # def min_value(self, state, current_agent, depth):#, action):
-    #   val = sys.maxint
-    #   # actions = previous_actions
-    #   if depth == self.depth  or state.isWin() or state.isLose():
-    #     return self.evaluationFunction(state)
-    #   # _current_agent = (current_agent) % (self.totalAgents - 1)
-    #   # _current_agent = current_agent
+        score = -sys.maxint
+        action = ""
+        for move in gameState.getLegalActions(current_agent):
+          successor = gameState.generateSuccessor(current_agent, move)
+          _score = self.minValue(successor, current_agent + 1, current_depth)
+          if _score > score:
+            score = _score
+            action = move
 
-    #   # if current_agent + 1 == self.totalAgents:
-    #   #   print "incremented"
-    #   #   depth += 1
-    #   # else:
-    #   #   _current_agent += 1#= current_agent + 1#(current_agent + 1) % (self.totalAgents - 1)
-    #   # _current_agent = (current_agent + 1) % (self.totalAgents - 1)
-
-    #   # current_agent %= (self.totalAgents - 1)
-    #   # if depth == self.depth  or state.isWin() or state.isLose():
-    #   #   return self.evaluationFunction(state)
-    #   for move in state.getLegalActions(current_agent):
-    #     # _actions = previous_actions + [action]
-    #     successor = state.generateSuccessor(current_agent, move)
-    #     # for successor in state.generateSuccessor(current_agent, action):
-    #     # _current_agent = (current_agent + 1) % (self.totalAgents - 1)
-    #     # if _current_agent == 0:
-    #     #   val = max(val, self.value(successor, _current_agent, depth))
-    #     # else:
-    #     if current_agent + 1 == self.depth:
-    #       val = min(val, self.max_value(successor, current_agent, depth + 1))
-    #       print "incremented"
-    #     else:
-    #       val = min(val, self.min_value(successor, current_agent + 1, depth))
-    #     # val, a = self.value(successor, current_agent, move)
-    #     # if val < v:
-    #     #   v = val
-    #     #   action = move
-    #     #   print "min:", action
-    #       # actions = _actions + [a]
-    #       # v = min(v, self.value(successor, current_agent))
-    #   # if current_agent + 1 == self.totalAgents:
-    #   #   print "incremented"
-    #   #   self.current_depth += 1
-    #   print "min:", val
-    #   return val#, action
-
-    # def max_value(self, state, current_agent, depth):#, action):
-    #   val = -sys.maxint
-    #   # self.current_agent = 0
-    #   # actions = previous_actions
-    #   if depth == self.depth  or state.isWin() or state.isLose():
-    #     return self.evaluationFunction(state)
-    #   # _current_agent = (current_agent + 1) % (self.totalAgents - 1)
-
-    #   current_agent %= (self.totalAgents - 1)
-    #   for move in state.getLegalActions(current_agent):
-    #     # _actions = previous_actions + [action]
-    #     successor = state.generateSuccessor(current_agent, move)
-    #     # for successor in state.generateSuccessor(current_agent, action):
-    #     # for agent in range()
-    #     # for i in range(1, self.totalAgents):
-    #     # _current_agent = (current_agent + 1) % (self.totalAgents - 1)
-    #     val = max(val, self.min_value(successor, current_agent + 1, depth))#self.value(successor, current_agent + 1, depth))#, move))
-    #     # val, a = self.value(successor, current_agent, move)
-    #     # if val > v:
-    #     #   v = val
-    #       # action = move
-    #       # print "max:", action
-    #       # actions = _actions + [a]
-    #       # current_agent += 1
-    #       # v = max(v, self.value(successor, current_agent))
-    #   print "max:", val
-    #   return val#, action
-
-
-    # def value(self, state, current_agent, depth):#, action):
-    #   # print "current agent", current_agent
-    #   # if (current_agent == self.totalAgents - 1):
-    #   #   print "current agent incremented", current_agent
-    #   #   self.current_depth += 1
-    #   # if self.current_depth > self.depth:
-    #   #   print "PROBLEM"
-    #   # if self.current_depth + 1 == self.depth and current_agent % self.totalAgents == self.totalAgents - 1:
-    #     # print "ca", current_agent
-    #     # print "ta", self.totalAgents
-    #     # print "d", self.depth
-    #   # current_agent %= (self.totalAgents - 1)
-    #   if depth == self.depth  or state.isWin() or state.isLose():
-    #     return self.evaluationFunction(state)#, action
-    #   if current_agent == 0 or current_agent + 1 == self.totalAgents:
-    #     return self.max_value(state, current_agent, depth)#, action) 
-    #   elif current_agent > 0:
-    #     # current_agent + 1
-    #     return self.min_value(state, current_agent, depth)#, action)
-
-    # def getAction(self, gameState):
-    #     """
-    #       Returns the minimax action from the current gameState using self.depth
-    #       and self.evaluationFunction.
-
-    #       Here are some method calls that might be useful when implementing minimax.
-
-    #       gameState.getLegalActions(agentIndex):
-    #         Returns a list of legal actions for an agent
-    #         agentIndex=0 means Pacman, ghosts are >= 1
-
-    #       gameState.generateSuccessor(agentIndex, action):
-    #         Returns the successor game state after an agent takes an action
-
-    #       gameState.getNumAgents():
-    #         Returns the total number of agents in the game
-    #     """
-
-    #     self.current_depth = 0
-    #     currentState = gameState
-    #     self.totalAgents = gameState.getNumAgents()
-    #     action = []
-    #     self.current_depth = 0
-    #     # while self.current_depth <= self.depth:
-    #     # self.current_depth = 0
-    #     # self.depth = 1
-        
-    #     # score = self.max_value(currentState, 0)#, action)
-    #       # self.current_depth += 1
-
-    #     score = -sys.maxint
-    #     print "Agents:", self.totalAgents
-    #     print "Depth:", self.depth
-    #     for move in currentState.getLegalActions(0):
-    #       _score = max(score, self.min_value(currentState.generateSuccessor(0, move), 1, 0))
-    #       print "Score:", _score
-    #       if _score > score:
-    #         score = _score
-    #         action = move
-
-        
-    #     print "returned:", action
-    #     return action
-        # self.value(gameState)
-
-        # self.totalAgents = self.getNumAgents() - 1
-
-
-        # stack = util.Stack()
-
-        # root = TreeNode(gameState, 0, 0, False)
-        # parent_root = root
-        # stack.push(parent_root)
-        # parent = gameState
-        # fringe = util.Queue()
-        # fringe.push(parent_root)
-        # # for d in range(self.depth):
-        # d = 1
-        # fringe_help = [0] * (self.depth + 1)
-        # print self.depth
-        # while d <= self.depth:
-        #   # actions = gameState.getLegalActions(0)
-        #   parent_root = fringe.pop()
-        #   actions = parent_root.gameState.getLegalActions(0)
-        #   if fringe_help[d - 1] > 0:
-        #     fringe_help[d - 1] -= 1
-        #   # nodes = list()
-        #   # currentGameState = gameState
-        #   for action in actions:
-        #     pstate = parent.generateSuccessor(0, action)
-        #     _parent_root = TreeNode(pstate, action, parent_root, False)
-        #     stack.push(_parent_root)
-        #     for i in range(1,parent.getNumAgents()):
-        #       print("stack")
-        #       currentGameState = gameState.generateSuccessor(i, action)
-        #       current = TreeNode(currentGameState, action, _parent_root, True)
-        #       stack.push(current)
-        #     fringe.push(current)
-        #     fringe_help[d] += 1
-        #   if fringe_help[d - 1] == 0:
-        #     d += 1
-
-        #     # parent_root = TreeNode(gameState, parent, )
-
-        #       # nodes.append(TreeNode(currentGameState, action))
-        # while not stack.isEmpty():
-        #   popped = stack.pop()
-        #   if popped.parent == 0:
-        #     break
-        #   print("popped")
-        #   if popped.terminal:
-        #     score = popped.score
-        #     # score = self.evaluationFunction(popped.gameState)
-        #   else:
-        #     # print popped.gameState.getScore()
-        #     score = popped.score
-        #   popped.parent.update_score(score, popped.actions)
-
-        # return root.actions
-
-
-          # pass
+        return action
 
         # "*** YOUR CODE HERE ***"
         # # util.raiseNotDefined()
