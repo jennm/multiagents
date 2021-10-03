@@ -53,19 +53,6 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
-    def getMinDistance(self, state, _locations):
-      locations = _locations.asList()
-      if len(locations) == 0:
-        return 0, 0
-      min_dist = manhattanDistance(state, locations[0])
-      max_dist = min_dist
-      for location in locations[1:]:
-        # min_dist += manhattanDistance(state, location)
-        dist = manhattanDistance(state, location)
-        min_dist = min(min_dist, dist)
-        max_dist = max(max_dist, dist)
-      return min_dist + 1, max_dist
-
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -88,21 +75,11 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        # print "successorGameState:", successorGameState
-        # print "newPos:", newPos
-        # print "newFood:", type(newFood)
-        # print "newGhostStates:", newGhostStates
-        # print "newScaredTimes:", newScaredTimes
-        # print "newFood count:", newFood.count()
-
-        # print "min distance:", self.getMinDistance(newPos, newFood)
-
-        # grid_manhatten = successorGameState.width + successorGameState.height
 
         if len(newGhostStates) > 0:
-          x, y = ghostState.getPosition()
-          direction = ghostState.getDirection()
-          # print "direction:", direction
+          x, y = newGhostStates[0].getPosition()
+          direction = newGhostStates[0].getDirection()
+          
           if direction == 'NORTH':
             x += 1
           elif direction == 'SOUTH':
@@ -111,12 +88,11 @@ class ReflexAgent(Agent):
             y += 1
           elif direction == 'WEST':
             y -= 1
-          # if direction == successorGameState.getPacmanDirection()
-          ghost_factor = max(manhattanDistance(newPos, ghostState.getPosition()), manhattanDistance(newPos, (x,y)))
+
+          ghost_factor = max(manhattanDistance(newPos, newGhostStates[0].getPosition()), manhattanDistance(newPos, (x,y)))
           for ghostState in newGhostStates[1:]:
             x, y = ghostState.getPosition()
             direction = ghostState.getDirection()
-            print "direction:", direction
             if direction == 'NORTH':
               x += 1
             elif direction == 'SOUTH':
@@ -136,15 +112,9 @@ class ReflexAgent(Agent):
 
         successorGameState.getPacmanState()
         
-        # dist = self.getMinDistance(newPos, newFood)
-        # if type(dist) is list:
-        #   min_dist = dist[0]
-        #   max_dist = dist[1]
-        min_dist, max_dist = self.getMinDistance(newPos, newFood)
-        return 3 *successorGameState.getScore()  +  scared - 1.75 * min_dist - (max_dist - min_dist) / 2 + ghost_factor - newFood.count()#/ 1.25 - newFood.count()
-        "*** YOUR CODE HERE ***"
-        # old successor function
-        # return successorGameState.getScore()
+        min_dist, max_dist = getMinDistance(newPos, newFood)
+        return 3 * successorGameState.getScore()  +  scared - 1.75 * min_dist - (max_dist - min_dist) / 2 + ghost_factor - newFood.count()#/ 1.25 - newFood.count()
+
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -156,49 +126,6 @@ def scoreEvaluationFunction(currentGameState):
     """
     return currentGameState.getScore()
 
-class TreeNode(Agent):
-
-  def __init__(self, gameState, action, parent, agent=True):
-    self.gameState = gameState
-    self.previous_action = action
-    self.parent = parent
-    if agent:
-      self.score = 10000000000000000
-    else:
-      self.score = -10000000000000000
-    # self.score = 0#gameState.getScore()
-    self.agent = agent
-    self.actions = [action]
-    self.terminal = True
-    if self.parent != 0:
-      print "update terminal"
-      self.parent.terminal = False
-
-  def update_score(self, new_score, actions):
-    # if self.parent != 0:
-    #   print("before getScore called")
-    #   score = self.gameState.getScore()
-    # else:
-    #   score = self.score
-    
-    if self.agent:
-      if self.score > new_score:
-        self.score = new_score
-        self.actions.append(actions)
-      # elif self.score > score:
-      #   self.score = score
-    else:
-      if self.score < new_score:
-        self.score= new_score
-        self.actions.append(actions)
-      # elif self.score < score:
-      #   self.score = score
-  
-  # def add_successor(self, successor):
-  #   self.successors.append(successor)
-
-
-    
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -288,9 +215,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         return action
 
-        # "*** YOUR CODE HERE ***"
-        # # util.raiseNotDefined()
-
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
@@ -356,15 +280,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           alpha = max(alpha, _score)
 
         return action
-        # "*** YOUR CODE HERE ***"
-        # util.raiseNotDefined()
 
-    # def value(self, state):
-    #   if 
-    # def max_value(self, state):
-    #   v = 0
-    #   for successor in state.successors:
-    #     v = max(v, )
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -424,18 +340,75 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             action = move
 
         return action
-        # "*** YOUR CODE HERE ***"
-        # util.raiseNotDefined()
+
+def getMinDistance(state, _locations):
+  locations = _locations.asList()
+  if len(locations) == 0:
+    return 0, 0
+  min_dist = manhattanDistance(state, locations[0])
+  max_dist = min_dist
+  for location in locations[1:]:
+    # min_dist += manhattanDistance(state, location)
+    dist = manhattanDistance(state, location)
+    min_dist = min(min_dist, dist)
+    max_dist = max(max_dist, dist)
+  return min_dist + 1, max_dist
 
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION: Takes into account how close the ghosts are to PacMan, how close PacMan is to the closest food pellet,
+      how many food pellets remain, and how many ghosts are scared. Each factor is weighted differently to create a solid
+      evaluationFunction. :)
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    successorGameState = currentGameState
+    newPos = successorGameState.getPacmanPosition()
+    newFood = successorGameState.getFood()
+    newGhostStates = successorGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    if len(newGhostStates) > 0:
+      x, y = newGhostStates[0].getPosition()
+      direction = newGhostStates[0].getDirection()
+      
+      if direction == 'NORTH':
+        x += 1
+      elif direction == 'SOUTH':
+        x -= 1
+      elif direction == 'EAST':
+        y += 1
+      elif direction == 'WEST':
+        y -= 1
+
+      ghost_factor = max(manhattanDistance(newPos, newGhostStates[0].getPosition()), manhattanDistance(newPos, (x,y)))
+      for ghostState in newGhostStates[1:]:
+        x, y = ghostState.getPosition()
+        direction = ghostState.getDirection()
+        if direction == 'NORTH':
+          x += 1
+        elif direction == 'SOUTH':
+          x -= 1
+        elif direction == 'EAST':
+          y += 1
+        elif direction == 'WEST':
+          y -= 1
+      
+        ghost_factor = min(max(manhattanDistance(newPos, ghostState.getPosition()), manhattanDistance(newPos, (x,y))))
+    else:
+      ghost_factor = 0
+
+    scared = 0
+    for scaredTime in newScaredTimes:
+      scared += scaredTime
+
+    successorGameState.getPacmanState()
+    
+    min_dist, max_dist = getMinDistance(newPos, newFood)
+    return 3 *successorGameState.getScore()  +  scared - 1.75 * min_dist - (max_dist - min_dist) / 2 + ghost_factor - newFood.count()#/ 1.25 - newFood.count()
+
 
 # Abbreviation
 better = betterEvaluationFunction
