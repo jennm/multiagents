@@ -296,12 +296,68 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
       Your minimax agent with alpha-beta pruning (question 3)
     """
 
+    def maxValue(self, state, current_agent, depth, alpha, beta):
+      if depth == self.depth or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)
+      
+
+      current_agent %= (self.totalAgents - 1)
+      val = -sys.maxint
+      for move in state.getLegalActions(current_agent):
+        successor = state.generateSuccessor(current_agent, move)
+        val = max(val, self.minValue(successor, current_agent + 1, depth, alpha, beta))
+        if val > beta:
+          return val
+        alpha = max(alpha, val)
+      return val
+
+    def minValue(self, state, current_agent, depth, alpha, beta):
+      if depth == self.depth or state.isWin() or state.isLose():
+        return self.evaluationFunction(state)
+      
+      val = sys.maxint
+
+      if current_agent + 1 == self.totalAgents:
+        for move in state.getLegalActions(current_agent):
+          successor = state.generateSuccessor(current_agent, move)
+          val = min(val, self.maxValue(successor, current_agent, depth + 1, alpha, beta))
+          if val < alpha:
+            return val
+          beta = min(beta, val)
+      else:
+        for move in state.getLegalActions(current_agent):
+          successor = state.generateSuccessor(current_agent, move)
+          val = min(val, self.minValue(successor, current_agent + 1, depth, alpha, beta))
+          if val < alpha:
+            return val
+          beta = min(beta, val)
+      return val
+
+
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.totalAgents = gameState.getNumAgents()
+        current_depth = 0
+        current_agent = 0
+
+        score = -sys.maxint
+        action = ""
+        alpha = -sys.maxint
+        beta = sys.maxint
+        for move in gameState.getLegalActions(current_agent):
+          successor = gameState.generateSuccessor(current_agent, move)
+          _score = self.minValue(successor, current_agent + 1, current_depth, alpha, beta)#-sys.maxint, sys.maxint)
+          if _score > score:
+            score = _score
+            action = move\
+              
+          alpha = max(alpha, _score)
+
+        return action
+        # "*** YOUR CODE HERE ***"
+        # util.raiseNotDefined()
 
     # def value(self, state):
     #   if 
